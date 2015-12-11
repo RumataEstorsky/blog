@@ -1,3 +1,25 @@
-GET     /                           controllers.Application.index
+#  Должен возвращать название блога, автора, отсортированные по времени создания посты [0-10 на один запрос].
+#  Информация в постах: текст(не  более 3-х первых предложений или пятисот символов), время создания, время
+#  изменения*, кол-во комментариев
+GET     /         controllers.Application.index
+
+# должен возвращать название блога, автор, заголовок поста, комментарии [0-10] на один запрос*
+GET    /post/:postId     controllers.Application.getComments(postId: Long)
+
+# {заголовок, текст json/xml} должен создавать новый пост
+PUT    /post             controllers.Application.createPost
+
+# {заголовок или текст или то и другое вместе json/xml}, должен изменять существующий пост.
+PATCH  /post/:postId     controllers.Application.updatePost(postId: Long)
+
+# должен удалять существующий пост
+DELETE /post/:postId     controllers.Application.removePost(postId: Long)
+
+# {заголовок,текст json/xml} должен создавать новый комментарий к посту
+PUT    /post/:postId/comment controllers.Application.createComment(postId: Long)
+
+#  должен удалять существующий комментарий
+DELETE /post/:postId/comment/commentId controllers.Application.removeComment(postId: Long, commentId: Long)
+
 
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
