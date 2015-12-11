@@ -19,9 +19,11 @@ class PostDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider) 
 
   private val Posts = TableQuery[PostsTable]
 
-  def all(): Future[Seq[Post]] = db.run(Posts.result)
+  def all(): Future[Seq[Post]] = db.run(Posts.sortBy(_.createdAt).result)
 
   def insert(post: Post): Future[Unit] = db.run(Posts += post).map { _ => () }
+
+  def remove(postId: Long) = db.run(Posts.filter(p => p.id === postId).delete)
 
   class PostsTable(tag: Tag) extends Table[Post](tag, "posts") {
 
@@ -31,11 +33,11 @@ class PostDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider) 
 
     def content = column[String]("content")
 
-//    def createdAt = column[Time]("createdAt")
-//
-//    def modifiedAt = column[Time]("modifiedAt")
+    def createdAt = column[String]("created_at")
 
-    def * = (id.?, title, content/*, createdAt, modifiedAt.?*/) <>((Post.apply _).tupled, Post.unapply _)
+    def modifiedAt = column[String]("modified_at")
+
+    def * = (id.?, title, content, createdAt.?, modifiedAt.?) <>((Post.apply _).tupled, Post.unapply _)
   }
 
 }

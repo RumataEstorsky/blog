@@ -15,9 +15,9 @@ import play.api.libs.json._
  */
 case class Post(id: Option[Long] = None,
                 title: String,
-                content: String
-//                createdAt: Time,
-//                modifiedAt: Option[Time] = None
+                content: String,
+                createdAt: Option[String] = None,
+                modifiedAt: Option[String] = None
                  )
 
 object Post {
