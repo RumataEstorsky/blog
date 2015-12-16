@@ -3,10 +3,12 @@ package dao
 import javax.inject.Inject
 
 import models.Comment
+import org.joda.time.DateTime
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.driver.JdbcProfile
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.Future
+import com.github.tototoshi.slick.PostgresJodaSupport._
 
 /**
  * Created by rumata on 11.12.15.
@@ -17,11 +19,14 @@ class CommentDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
 
   private val Comments = TableQuery[CommentsTable]
 
-  def all(): Future[Seq[Comment]] = db.run(Comments.sortBy(_.createdAt).result)
+  def allForPost(postId: Long): Future[Seq[Comment]] = db.run(Comments.filter(c => c.postId === postId).sortBy(_.createdAt).result)
 
-  def insert(comment: Comment): Future[Unit] = db.run(Comments += comment).map { _ => () }
+  def insert(postId: Long, comment: Comment): Future[Unit] = {
+    val commentToInsert = comment.copy(postId = postId)
+    db.run(Comments += commentToInsert).map { _ => () }
+  }
 
-  def remove(postId: Long, commentId: Long) = db.run(Comments.filter(c => c.id === commentId && c.postId == postId).delete)
+  def remove(postId: Long, commentId: Long) = db.run(Comments.filter(c => c.id === commentId && c.postId === postId).delete).map(_ => ())
 
   class CommentsTable(tag: Tag) extends Table[Comment](tag, "comments") {
 
@@ -33,8 +38,8 @@ class CommentDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
 
     def content = column[String]("content")
 
-    def createdAt = column[String]("created_at")
+    def createdAt = column[DateTime]("created_at")
 
-    def * = (id.?, postId, author, content, createdAt.?) <>((Comment.apply _).tupled, Comment.unapply _)
+    def * = (id.?, postId, author, content, createdAt) <>((Comment.apply _).tupled, Comment.unapply _)
   }
 }

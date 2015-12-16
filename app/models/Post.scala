@@ -1,14 +1,10 @@
 package models
 
-import java.sql.Time
-
-import play.api.libs.json.Json
-
-
-import play.api.libs.json.Json._
+import org.joda.time.DateTime
+import play.api.data.validation.ValidationError
+import play.api.libs.functional.syntax._
+import play.api.libs.json.Reads._
 import play.api.libs.json._
-
-
 
 /**
  * Created by rumata on 11.12.15.
@@ -16,22 +12,30 @@ import play.api.libs.json._
 case class Post(id: Option[Long] = None,
                 title: String,
                 content: String,
-                createdAt: Option[String] = None,
-                modifiedAt: Option[String] = None
+                createdAt: DateTime,
+                modifiedAt: Option[DateTime] = None
                  )
 
 object Post {
-//  def timestampToDateTime(t: Timestamp): DateTime = new DateTime(t.getTime)
-//
-//  def dateTimeToTimestamp(dt: DateTime): Timestamp = new Timestamp(dt.getMillis)
-//
-//  implicit val timestampFormat = new Format[Time] {
-//
-//    def writes(t: Time): JsValue = toJson(t.toString)
-//
-//    def reads(json: JsValue): JsResult[Time] = new Time(System.currentTimeMillis()) //fromJson[Time](json).map(dateTimeToTimestamp)
-//
-//  }
 
-  implicit val storeFormat = Json.format[Post]
+  implicit val jodaDateWrites = Writes.jodaDateWrites("yyyy-MM-dd'T'HH:mm:ss'Z'")
+
+  implicit val postReads: Reads[Post] = (
+    (JsPath \ "id").readNullable[Long] and
+    (JsPath \ "title").read[String](maxLength[String](256)) and
+    (JsPath \ "content").read[String](maxLength[String](2048)) and
+    ((JsPath \ "createdAt").read[DateTime] or Reads.pure(new DateTime())) and
+    (JsPath \ "modifiedAt").readNullable[DateTime]
+  )(Post.apply _)
+
+  implicit val postWrites: Writes[Post] = (
+    (JsPath \ "id").writeNullable[Long] and
+    (JsPath \ "title").write[String] and
+    (JsPath \ "content").write[String] and
+    (JsPath \ "createdAt").write[DateTime] and
+    (JsPath \ "modifiedAt").writeNullable[DateTime]
+  )(unlift(Post.unapply))
+
+  implicit val postFormat: Format[Post] = Format(postReads, postWrites)
+  //    implicit val postFormat: Format[Post] = Json.format[Post]
 }

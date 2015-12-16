@@ -1,7 +1,7 @@
 #  Должен возвращать название блога, автора, отсортированные по времени создания посты [0-10 на один запрос].
 #  Информация в постах: текст(не  более 3-х первых предложений или пятисот символов), время создания, время
 #  изменения*, кол-во комментариев
-GET     /         controllers.Application.index
+GET     /         controllers.Application.getPosts
 
 # должен возвращать название блога, автор, заголовок поста, комментарии [0-10] на один запрос*
 GET    /post/:postId     controllers.Application.getComments(postId: Long)
@@ -19,7 +19,7 @@ DELETE /post/:postId     controllers.Application.removePost(postId: Long)
 PUT    /post/:postId/comment controllers.Application.createComment(postId: Long)
 
 #  должен удалять существующий комментарий
-DELETE /post/:postId/comment/commentId controllers.Application.removeComment(postId: Long, commentId: Long)
+DELETE /post/:postId/comment/:commentId controllers.Application.removeComment(postId: Long, commentId: Long)
 
 
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
