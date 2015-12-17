@@ -44,6 +44,13 @@ class Application @Inject()(postDao: PostDAO, commentDao: CommentDAO) extends Co
   }
 
   def createComment(postId: Long) = Action.async(parse.json) { implicit request =>
+    request.body.validate[Comment].map { comment =>
+      commentDao.insert(postId, comment).map(_ => Ok(toJson(comment)))
+    }.getOrElse(Future.successful(BadRequest("invalid json")))
+  }
+
+
+ /* def createComment(postId: Long) = Action.async(parse.json) { implicit request =>
     for {
       comment <- request.body.validate[Comment]
       Some(post) <- postDao.findById(postId)
@@ -57,7 +64,7 @@ class Application @Inject()(postDao: PostDAO, commentDao: CommentDAO) extends Co
 //        case None => Future.successful(NotFound)
 //      }
 //    }.getOrElse(Future.successful(BadRequest("invalid json")))
-  }
+  }*/
 
   // TODO argument postId is excess!
   def removeComment(postId: Long, commentId: Long) = Action.async {

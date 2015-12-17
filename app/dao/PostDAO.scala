@@ -40,7 +40,9 @@ class PostDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider) 
 
     def modifiedAt = column[DateTime]("modified_at")
 
-    def * = (id.?, title, content, createdAt, modifiedAt.?) <>((Post.apply _).tupled, Post.unapply _)
+    def commentsCount = column[Int]("comments_count")
+
+    def * = (id.?, title, content, createdAt, modifiedAt.?, commentsCount) <>((Post.apply _).tupled, Post.unapply _)
   }
 
 }
