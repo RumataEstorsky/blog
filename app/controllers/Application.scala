@@ -6,7 +6,7 @@ import java.util.Date
 import javax.inject.Inject
 
 import dao.{CommentDAO, PostDAO}
-import models.{Post, Comment}
+import models.{Blog, Post, Comment}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json.toJson
 import play.api.mvc.{Action, Controller}
@@ -17,14 +17,14 @@ import play.api.libs.json._
 class Application @Inject()(postDao: PostDAO, commentDao: CommentDAO) extends Controller {
   val Success = Ok(Json.obj("result" -> "Success")) // TODO Special classes
 
-  def getPosts = Action.async {
-    postDao.all().map { posts => Ok(toJson(posts)) }
+  def getPosts(page: Int) = Action.async {
+    postDao.page(page - 1).map { posts => Ok(Blog.decoratePostList(posts)) }
   }
 
 
   def createPost = Action.async(parse.json) { implicit request =>
     request.body.validate[Post].map { post =>
-      postDao.insert(post).map(_ => Ok(toJson(post)))
+      postDao.insert(post).map(_ => Created(toJson(post)))
     }.getOrElse(Future.successful(BadRequest("invalid json")))
   }
 
@@ -39,13 +39,17 @@ class Application @Inject()(postDao: PostDAO, commentDao: CommentDAO) extends Co
     for{ _ <- postDao.remove(postId) } yield Success
   }
 
-  def getComments(postId: Long) = Action.async {
-    commentDao.allForPost(postId).map { comment => Ok(toJson(comment)) }
+  def getComments(postId: Long, page: Int) = Action.async {
+    // TODO maybe need NotFound???
+    for {
+      Some(post) <- postDao.findById(postId)
+      comments <- commentDao.pageForPost(postId, page - 1)
+    } yield Ok(Blog.decorateCommentList(post, comments))
   }
 
   def createComment(postId: Long) = Action.async(parse.json) { implicit request =>
     request.body.validate[Comment].map { comment =>
-      commentDao.insert(postId, comment).map(_ => Ok(toJson(comment)))
+      commentDao.insert(postId, comment).map(_ => Created(toJson(comment)))
     }.getOrElse(Future.successful(BadRequest("invalid json")))
   }
 
@@ -55,12 +59,12 @@ class Application @Inject()(postDao: PostDAO, commentDao: CommentDAO) extends Co
       comment <- request.body.validate[Comment]
       Some(post) <- postDao.findById(postId)
       result <- commentDao.insert(postId, comment)
-    } yield Ok(toJson(result))
+    } yield Created(toJson(result))
 
 //    request.body.validate[Comment].flatMap { comment =>
-////       commentDao.insert(postId, comment).map(_ => Ok(toJson(comment)))
+////       commentDao.insert(postId, comment).map(_ => Created(toJson(comment)))
 //      postDao.findById(postId).map {
-//        case Some(p) => commentDao.insert(postId, comment).map(_ => Ok(toJson(comment)))
+//        case Some(p) => commentDao.insert(postId, comment).map(_ => Created(toJson(comment)))
 //        case None => Future.successful(NotFound)
 //      }
 //    }.getOrElse(Future.successful(BadRequest("invalid json")))

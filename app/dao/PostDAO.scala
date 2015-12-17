@@ -20,7 +20,8 @@ class PostDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider) 
 
   private val Posts = TableQuery[PostsTable]
 
-  def all(): Future[Seq[Post]] = db.run(Posts.sortBy(_.createdAt).result)
+  def page(pageIndex: Int, pageSize: Int = 10): Future[Seq[Post]] =
+    db.run(Posts.drop(pageIndex * pageSize).take(pageSize).sortBy(_.createdAt).result)
 
   def findById(postId: Long) = db.run(Posts.filter(p => p.id === postId).result.headOption)
 

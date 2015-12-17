@@ -15,6 +15,7 @@ case class Comment(id: Option[Long] = None,
                    createdAt: DateTime)
 
 object Comment {
+  import Blog.jodaDateWrites
 
   implicit val commentReads: Reads[Comment] = (
     (JsPath \ "id").readNullable[Long] and

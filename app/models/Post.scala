@@ -18,8 +18,7 @@ case class Post(id: Option[Long] = None,
                  )
 
 object Post {
-
-  implicit val jodaDateWrites = Writes.jodaDateWrites("yyyy-MM-dd'T'HH:mm:ss'Z'")
+  import Blog.jodaDateWrites
 
   implicit val postReads: Reads[Post] = (
     (JsPath \ "id").readNullable[Long] and

@@ -19,7 +19,14 @@ class CommentDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
 
   private val Comments = TableQuery[CommentsTable]
 
-  def allForPost(postId: Long): Future[Seq[Comment]] = db.run(Comments.filter(c => c.postId === postId).sortBy(_.createdAt).result)
+  def pageForPost(postId: Long, pageIndex: Int, pageSize: Int = 10): Future[Seq[Comment]] = {
+    val commentList = Comments
+      .drop(pageIndex * pageSize).take(pageSize)
+      .filter(c => c.postId === postId)
+      .sortBy(_.createdAt).result
+    db.run(commentList)
+  }
+
 
   def insert(postId: Long, comment: Comment): Future[Unit] = {
     val commentToInsert = comment.copy(postId = postId)
