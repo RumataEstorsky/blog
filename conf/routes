@@ -20,5 +20,3 @@ PUT    /post/:postId/comment controllers.Application.createComment(postId: Long)
 
 #  должен удалять существующий комментарий
 DELETE /post/:postId/comment/:commentId controllers.Application.removeComment(postId: Long, commentId: Long)
-
-GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

@@ -68,7 +68,6 @@ class Application @Inject()(postDao: PostDAO, commentDao: CommentDAO) extends Co
   }
 
 
-  // TODO argument postId is excess!
   def removeComment(postId: Long, commentId: Long) = Action.async {
     for{ _ <- commentDao.remove(postId, commentId) } yield Success
   }
