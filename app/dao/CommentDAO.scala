@@ -21,9 +21,10 @@ class CommentDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
 
   def pageForPost(postId: Long, pageIndex: Int, pageSize: Int = 10): Future[Seq[Comment]] = {
     val commentList = Comments
+      .sortBy(_.createdAt)
       .drop(pageIndex * pageSize).take(pageSize)
       .filter(c => c.postId === postId)
-      .sortBy(_.createdAt).result
+      .result
     db.run(commentList)
   }
 
