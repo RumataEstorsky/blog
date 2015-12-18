@@ -15,7 +15,16 @@ case class Post(id: Option[Long] = None,
                 createdAt: DateTime,
                 modifiedAt: Option[DateTime] = None,
                 commentsCount: Int = 0
-                 )
+                 ) {
+  /** Returns three first sentences, or text <= 500 chars. */
+  def preview = {
+    val Limit = 500
+    val Postfix = "..."
+    val sentences = content.split('.').take(3).mkString(".")
+    if(sentences.length < Limit) sentences
+    else content.substring(Limit - Postfix.length) + Postfix
+  }
+}
 
 object Post {
   import Blog.jodaDateWrites
@@ -36,7 +45,7 @@ object Post {
     (JsPath \ "createdAt").write[DateTime] and
     (JsPath \ "modifiedAt").writeNullable[DateTime] and
     (JsPath \ "commentsCount").write[Int]
-  )(unlift(Post.unapply))
+  ){p: Post => (p.id, p.title, p.preview, p.createdAt, p.modifiedAt, p.commentsCount)}
 
   implicit val postFormat: Format[Post] = Format(postReads, postWrites)
   //    implicit val postFormat: Format[Post] = Json.format[Post]
