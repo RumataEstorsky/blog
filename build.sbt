@@ -12,7 +12,7 @@ libraryDependencies ++= Seq(
   specs2 % Test,
   "joda-time" % "joda-time" % "2.9.1",
   "com.github.tototoshi" %% "slick-joda-mapper" % "2.1.0",
-  "org.postgresql" % "postgresql" % "9.3-1104-jdbc41",
+  "org.postgresql" % "postgresql" % "9.4-1201-jdbc41",
   "com.h2database" % "h2" % "1.4.190",
   "com.typesafe.slick" %% "slick" % "3.1.0",
   "org.slf4j" % "slf4j-nop" % "1.6.4",
