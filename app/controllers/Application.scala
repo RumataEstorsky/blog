@@ -40,11 +40,14 @@ class Application @Inject()(postDao: PostDAO, commentDao: CommentDAO) extends Co
   }
 
   def getComments(postId: Long, page: Int) = Action.async {
-    // TODO maybe need NotFound???
-    for {
-      Some(post) <- postDao.findById(postId)
-      comments <- commentDao.pageForPost(postId, page - 1)
-    } yield Ok(Blog.decorateCommentList(post, comments))
+    postDao.findById(postId).flatMap { maybePost =>
+      maybePost.fold {
+        // TODO JSON Answer
+        Future.successful(NotFound("Not found post with ID = " + postId))
+      } { post =>
+        commentDao.pageForPost(postId, page - 1).map{ comments => Ok(Blog.decorateCommentList(post, comments))}
+      }
+    }
   }
 
   def createComment(postId: Long) = Action.async(parse.json) { implicit request =>
