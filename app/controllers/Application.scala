@@ -12,10 +12,8 @@ import org.joda.time.DateTime
 import scala.concurrent.Future
 
 class Application @Inject()(postDao: PostDAO, commentDao: CommentDAO) extends Controller {
-  val Success = Ok(Json.obj("result" -> "Success")) // TODO Special classes
+  val Success = Ok(Json.obj("result" -> "Success"))
   val InvalidJsonFuture = Future.successful(BadRequest(Json.obj("result" -> "Invalid JSON")))
-
-  // TODO JSON Answer
   private def PostNotFoundFuture(postId: Long) = Future.successful(NotFound("Not found post with ID = " + postId))
 
   def getPosts(page: Int) = Action.async {
@@ -33,7 +31,7 @@ class Application @Inject()(postDao: PostDAO, commentDao: CommentDAO) extends Co
     request.body.validate[Post].map { inputPost =>
       postDao.findById(postId).flatMap { maybePost =>
         maybePost.fold { PostNotFoundFuture(postId) } { dbPost =>
-          // one or second or both
+          // TODO one or second or both
           val postToUpdate = dbPost.copy(
             title = inputPost.title,
             content = inputPost.content,

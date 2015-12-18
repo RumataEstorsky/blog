@@ -17,10 +17,7 @@ CREATE TABLE posts
 
 ALTER TABLE posts ADD CONSTRAINT pkposts PRIMARY KEY (id);
 
-INSERT INTO posts (id, title, content) VALUES(1, 'Title Example', 'Content Example');
-
 ----------------------------------------------------------------------------------
-
 
 CREATE TABLE comments
 (
