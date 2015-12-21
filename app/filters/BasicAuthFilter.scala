@@ -6,13 +6,13 @@ import sun.misc.BASE64Decoder
 import scala.concurrent.Future
 
 
-class BasicAuthFilter extends Filter  {
+class BasicAuthFilter extends Filter {
   private val realm = "You must log in to Blog service"
   private lazy val unauthResult = Results.Unauthorized.withHeaders(("WWW-Authenticate", s"""Basic realm="$realm""""))
   private lazy val username = "rumata"
   private lazy val password = "rumata"
   private lazy val basicSt = "basic "
-  val enableMethods = Set("getPosts", "getComments",  "getComments",  "createComment")
+  val enableMethods = Set("getPosts", "getComments", "getComments", "createComment")
 
   private def decodeBasicAuth(auth: String): Option[(String, String)] = {
     if (auth.length() < basicSt.length()) {
@@ -38,7 +38,8 @@ class BasicAuthFilter extends Filter  {
   def apply(nextFilter: (RequestHeader) => Future[Result])
            (requestHeader: RequestHeader): Future[Result] = {
     val MN = "ROUTE_ACTION_METHOD"
-    if (requestHeader.tags.contains(MN) && enableMethods.contains(MN)) {
+    if (requestHeader.tags.contains(MN) &&
+      enableMethods.contains(requestHeader.tags(MN))) {
       return nextFilter(requestHeader)
     } else {
       requestHeader.headers.get("authorization").map { basicAuth =>

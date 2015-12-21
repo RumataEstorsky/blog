@@ -22,16 +22,17 @@ class CommentDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
   def pageForPost(postId: Long, pageIndex: Int, pageSize: Int = 10): Future[Seq[Comment]] = {
     val commentList = Comments
       .sortBy(_.createdAt)
-      .drop(pageIndex * pageSize).take(pageSize)
+      .drop(math.abs(pageIndex) * pageSize).take(pageSize)
       .filter(c => c.postId === postId)
       .result
     db.run(commentList)
   }
 
 
-  def insert(postId: Long, comment: Comment): Future[Unit] = {
+  def insert(postId: Long, comment: Comment): Future[Comment] = {
     val commentToInsert = comment.copy(postId = postId)
-    db.run(Comments += commentToInsert).map { _ => () }
+    val insertQuery = Comments returning Comments.map(_.id) into ((commentToInsert, id) => commentToInsert.copy(id = Some(id)))
+    db.run(insertQuery += commentToInsert)
   }
 
   def remove(postId: Long, commentId: Long) = db.run(Comments.filter(c => c.id === commentId && c.postId === postId).delete).map(_ => ())

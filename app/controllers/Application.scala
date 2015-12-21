@@ -4,17 +4,18 @@ import javax.inject.Inject
 
 import dao.{CommentDAO, PostDAO}
 import models.{Blog, Comment, Post}
+import org.joda.time.DateTime
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json.toJson
 import play.api.libs.json._
 import play.api.mvc.{Action, Controller}
-import org.joda.time.DateTime
+
 import scala.concurrent.Future
 
 class Application @Inject()(postDao: PostDAO, commentDao: CommentDAO) extends Controller {
   val Success = Ok(Json.obj("result" -> "Success"))
   val InvalidJsonFuture = Future.successful(BadRequest(Json.obj("result" -> "Invalid JSON")))
-  private def PostNotFoundFuture(postId: Long) = Future.successful(NotFound("Not found post with ID = " + postId))
+  private def PostNotFoundFuture(postId: Long) = Future.successful(NotFound(Json.obj("result" -> "error", "message" -> JsString("Not found post with ID = " + postId))))
 
   def getPosts(page: Int) = Action.async {
     postDao.page(page - 1).map { posts => Ok(Blog.decoratePostList(posts)) }
@@ -23,15 +24,17 @@ class Application @Inject()(postDao: PostDAO, commentDao: CommentDAO) extends Co
 
   def createPost = Action.async(parse.json) { implicit request =>
     request.body.validate[Post].map { post =>
-      postDao.insert(post).map(_ => Created(toJson(post)))
+      postDao.insert(post).map(inserted => Created(toJson(inserted)))
     }.getOrElse(InvalidJsonFuture)
   }
+
 
   def updatePost(postId: Long) = Action.async(parse.json) { implicit request =>
     request.body.validate[Post].map { inputPost =>
       postDao.findById(postId).flatMap { maybePost =>
+
         maybePost.fold { PostNotFoundFuture(postId) } { dbPost =>
-          // TODO one or second or both
+
           val postToUpdate = dbPost.copy(
             title = inputPost.title,
             content = inputPost.content,
@@ -59,7 +62,7 @@ class Application @Inject()(postDao: PostDAO, commentDao: CommentDAO) extends Co
     request.body.validate[Comment].map { comment =>
       postDao.findById(postId).flatMap { maybePost =>
         maybePost.fold { PostNotFoundFuture(postId) } { post =>
-          commentDao.insert(postId, comment).map(_ => Created(toJson(comment)))
+          commentDao.insert(postId, comment).map(inserted => Created(toJson(inserted)))
         }
       }
     }.getOrElse(InvalidJsonFuture)

@@ -21,11 +21,14 @@ class PostDAO @Inject()(protected val dbConfigProvider: DatabaseConfigProvider) 
   private val Posts = TableQuery[PostsTable]
 
   def page(pageIndex: Int, pageSize: Int = 10): Future[Seq[Post]] =
-    db.run(Posts.sortBy(_.createdAt).drop(pageIndex * pageSize).take(pageSize).result)
+    db.run(Posts.sortBy(_.createdAt).drop(math.abs(pageIndex) * pageSize).take(pageSize).result)
 
   def findById(postId: Long) = db.run(Posts.filter(p => p.id === postId).result.headOption)
 
-  def insert(post: Post): Future[Unit] = db.run(Posts += post).map { _ => () }
+  def insert(post: Post): Future[Post] = {
+    val insertQuery = Posts returning Posts.map(_.id) into ((post, id) => post.copy(id = Some(id)))
+    db.run(insertQuery += post)
+  }
 
   def update(post: Post): Future[Unit] = db.run(Posts.filter(p => p.id === post.id).update(post)).map { _ => () }
 
